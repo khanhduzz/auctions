@@ -1,0 +1,61 @@
+{% extends "auctions/layout.html" %}
+{% load humanize %}
+
+{% block title %}
+    Category Items
+{% endblock %}
+
+{% block tab %}category{% endblock %}
+
+{% block body %}
+    <div class="container-fluid">
+        <h2>Category</h2>
+        <div class="row">
+            <div class="col-md-2 w-100">
+                {% if watchlist != 0 %}
+                    {% for c in category %}
+                        <form action="{% url 'categoryView' %}" method="post">
+                            {% csrf_token %}
+                            {% if c.0 == current %}
+                                <button class="btn btn-dark p-1.5 mt-1 w-100" type="submit" name="category" value={{ c.0 }}>{{ c.1 }}</button>
+                            {% else %}
+                                <button class="btn btn-outline-secondary p-1.5 mt-1 w-100" type="submit" name="category" value={{ c.0 }}>{{ c.1 }}</button>
+                            {% endif %}
+                        </form>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div class="col-md-10">
+                {% for item in items %}
+                    <div class="row">
+                        <div class="col-md-4 text-center" style="max-height:250px">
+                            <img class="card-img-top rounded" style="height:100%; object-fit:cover" src="{{ item.image }}">
+                        </div>
+                        <div class="col-md-8">
+                            <div class="d-flex flex-column mb-3">
+                                <div class="p-1 card-header">
+                                    <a href="{% url 'itemListing' item.id %}">
+                                        <h4>{{ item.name }}</h4>
+                                    </a>
+                                </div>
+                                <div class="p-.5 card-title">
+                                    <h3>${{ item.get_current_price | intcomma }}</h3>
+                                </div>
+                                <div class="p-.5 card-subtitle mb-2 text-muted">Category: {{ item.get_category_display }}</div>
+                                <div class="p-.5 card-subtitle mb-2 text-muted">Listed date: {{ item.date }}</div>
+                                {% if item.bided is True %}
+                                    <div class=".alert alert-danger p-3">This listing is Closed</div>
+                                {% else%}
+                                    <div class=".alert alert-success p-3">This listing is Available</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="hr" />
+                {% empty %}
+                    <div>No listed.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock%}

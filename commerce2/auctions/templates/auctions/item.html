@@ -1,0 +1,184 @@
+{% extends "auctions/layout.html" %}
+{% load humanize %}
+
+{% block title %}   
+    {{ item.name }}
+{% endblock %}
+
+{% block body %}
+    <!--Item infomation-->
+    <div class="container">
+        <h2 class="card-header">Listing: {{ item.name }}</h2>
+        <div class="container mt-2">
+            <div class="row">
+                <div class="col-md-5">
+                    <img class="card-img-top" src="{{ item.get_image_url }}">
+                </div>
+                <div class="col-md-7">
+                    <div class="d-flex flex-column mb-3">
+                        <div class="p-2 display-3">{{ item.name }}</div>
+                        <div class="p-2 h4 text-secondary">First Price: ${{ item.first_price | intcomma }}</div>
+                        {% if bidUsers %}
+                            <div class="p-2 h4 text-success">Current Price: ${{ bidUsers.0.price | intcomma }}</div>
+                        {% endif %}
+                        <div class="p-2 card-body"><strong>Description:</strong> {{ item.description }}</div>
+                    </div>
+                    {% if user.is_authenticated %}
+                        <div class="container">
+                            {% if add is True %}
+                            <form action="{% url 'addWatchList' item.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary">Add to watch list.</button>
+                            </form>
+                            {% else %}
+                            <form action="{% url 'deleteWatchList' item.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary">Remove from watch list.</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="container mt-5">
+            <h5>Detail:</h5>
+            <div>
+                <div><em>Listed by:</em> {{ item.user_id }}</div>
+                <div><em>Category:</em> {{ item.get_category_display }}</div>
+                <div><em>Time listed:</em> {{ item.date }}</div>
+            </div>
+        </div>
+
+        {% if item.bided is False %}
+            <!--Biding area-->
+            {% if user.is_authenticated %}
+                {% if item.user_id == request.user %}
+                    <div class="container mt-1">
+                        <form action="{% url 'closeBid' item.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger" for="typeNumber" value={{ item.id }} name="close">Close Bid</button>
+                        </form>
+                    </div>
+                {% else %}
+                    <div class="container mt-1">
+                        <form action="{% url 'biding' item.id %}" method="post">
+                            {% csrf_token %}
+                            <div class="form-outline" data-mdb-input-init>
+                                {% if bidUsers %}
+                                    {% comment %} <input type="number" id="typeNumber" class="form-control" min={{ bidUsers.0.price }} step="0.01" name="price" ng-model="FormCtrl.number"/> {% endcomment %}
+                                    <input type="number" id="typeNumber" class="form-control" step="0.01" name="price" ng-model="FormCtrl.number"/>
+                                {% else %}
+                                    {% comment %} <input type="number" id="typeNumber" class="form-control" min={{ item.first_price }} step="0.01" name="price" ng-model="FormCtrl.number"/> {% endcomment %}
+                                    <input type="number" id="typeNumber" class="form-control" step="0.01" name="price" ng-model="FormCtrl.number"/>
+                                {% endif %}
+                                <button type="submit" class="btn btn-primary mt-2" for="typeNumber">Bid</button>
+                            </div>
+                        </form>
+                    </div>
+                {% endif %}
+            {% endif %}
+        {% endif %}
+            <!--View the top price and biding history-->
+            <div class="container">
+                {% if item.bided is True %}
+                    {% if request.user == bidUsers.0.user_id %}
+                        <div class=".alert alert-success p-3">
+                            <h3>You won this item</h3>
+                        </div>
+                    {% else %}
+                        <div class=".alert alert-success p-3">
+                            <h3>{{ bidUsers.0.user_id }} won this item</h3>
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+            <div class="container mt-5 border border-dark rounded">
+                <div class="row">
+                    <div class="col-md-4">
+                        {% if bidUsers %}
+                            {% if item.bided is True %}
+                                <div><strong>Winner price:</strong></div>
+                                {{ break }}
+                            {% elif bidUsers.0.user_id == request.user %}
+                                <div><strong>You are holding the top price:</strong></div>
+                                {{ break }}
+                            {% else %}
+                                <div><strong>Current bid:</strong></div>
+                            {% endif %}
+                            <h1 id="min_price" class="text-danger">${{ bidUsers.0.price | intcomma }}</h1>
+                            <div><strong>{{ bidUsers.0.user_id }}</strong></div>
+                            <div><em class="text-muted">{{ bidUsers.0.time }}</em></div>
+                        {% else %}
+                            <div><strong>First price:</strong></div>
+                            <h1 id="min_price" class="text-danger">${{ item.first_price | intcomma }}</h1>
+                            <div><strong>{{ item.user_id }}</strong></div>
+                            <div><em class="text-muted">{{ item.date }}</em></div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-8">
+                        <h3><small class="text-muted">Biding history:</small></h3>
+                        {% for user in bidUsers %}
+                            <div><strong>${{ user.price | intcomma }}: {{ user.user_id }}</strong><em class="text-muted"> at {{ user.time }}</em></div>
+                        {% empty %}
+                            <div>No bid yet.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+        <!-- Add comment -->
+        {% if user.is_authenticated %}
+            <div class="container mt-1">
+                <form action="{% url 'comment' item.id %}" method="post">
+                    {% csrf_token %}
+                    <div data-mdb-input-init class="form-outline mb-4">
+                        <label class="form-label" for="form6Example7"><strong>Add comment here as {{ request.user }}:</strong></label>
+                        <textarea name="content" class="form-control" id="form6Example7" rows="4"></textarea>
+                        <button type="submit" class="btn btn-primary mt-2" for="typeNumber" value={{ item.id}}>Submit</button>
+                    </div>
+                </form>
+            </div>
+        {% endif %}
+
+        <!-- Show all comments -->
+        <div class="container mt-5">
+            <h5><em>Comments:</em></h5>
+            {% for comment in comments %}
+                <div class="row">
+                    <div class="col-md-4">
+                        <div><strong>{{ comment.user_id }}:</strong></div>
+                        <div><em>{{ comment.time }}</em></div>
+                    </div>
+                    <div class="col-md-8">
+                        <div>{{ comment.content }}</div>
+                    </div>
+                </div>
+            {% empty %}
+            <div class="container">
+                <h5>There is no comment.</h5>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+
+    <!-- Js for min price value -->
+    <script type="text/javascript">
+
+        function get_min() {
+            let minValue = document.getElementById('min_price');
+            return parseInt(minValue.textContent.substring(1)) + 0.01;
+        };
+
+        function set_min() {
+            let type = document.getElementById('typeNumber');
+            type.setAttribute("min", get_min());
+        }
+
+        window.onload = function() {
+            set_min();
+        }
+
+    </script>
+{% endblock %}

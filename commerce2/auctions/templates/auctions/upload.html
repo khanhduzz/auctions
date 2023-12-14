@@ -1,0 +1,36 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %}
+    Upload new item
+{% endblock %}
+
+{% block tab %}upload{% endblock %}
+
+{% block body %}
+<div class="container">
+    <form action="{% url 'uploadItem' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div data-mdb-input-init class="form-outline mb-4">
+            <label class="form-label" for="form6Example3">Name</label>
+            <input name="name" type="text" id="form6Example3" class="form-control" />
+        </div>
+        <div data-mdb-input-init class="form-outline mb-4">
+            <label class="form-label" for="form6Example7">Description</label>
+            <textarea name="description" class="form-control" id="form6Example7" rows="4"></textarea>
+        </div>
+        <div>
+            <label class="form-label" for="form6Example3">Category: </label>
+            {{ item.category }}
+        </div>
+        <div data-mdb-input-init class="form-outline mb-4">
+            <label class="form-label" for="form6Example3">First Price</label>
+            <input name="first_price" type="text" id="form6Example3" class="form-control" />
+        </div>
+        <div data-mdb-input-init class="form-outline mb-4">
+            <label class="form-label" for="form6Example3">Image: </label>
+            {{ item.image }}
+        </div>
+        <button data-mdb-ripple-init type="submit" class="btn btn-primary btn-block mb-4">Upload</button>
+    </form>
+</div>
+{% endblock %}

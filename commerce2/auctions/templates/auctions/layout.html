@@ -1,0 +1,75 @@
+{% load static %}
+{% load humanize %}
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>{% block title %}Auctions{% endblock %}</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        <link href="{% static 'auctions/styles.css' %}" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Auctions</h1>
+        <div>
+            {% if user.is_authenticated %}
+                Signed in as <strong>{{ user.username }}</strong>.
+            {% else %}
+                Not signed in.
+            {% endif %}
+        </div>
+        <ul class="nav nav-pills">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'index' %}" id="index">Active Listings</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'categoryView' %}" id="category">Category</a>
+            </li>
+            {% if user.is_authenticated %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'watchList' %}" id="watchlist">
+                        Watch List
+                        {% if watchlist %}
+                        <span class="badge badge-danger ms-2">{{ watchlist | length }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'uploadItem' %}" id="upload">Upload new Item</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
+                </li>
+            {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'login' %}" id="login">Log In</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'register' %}" id="register">Register</a>
+                </li>
+            {% endif %}
+        </ul>
+        <hr>
+        <!-- Save information for visual current tab in use -->
+        <h1 hidden id="getTab">{% block tab %}index{% endblock %}</h1>
+
+        <div class="container-fluid">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class=".alert alert-success p-3">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        {% block body %}
+        {% endblock %}
+
+    </body>
+    <script type="text/javascript">
+        
+        document.addEventListener('DOMContentLoaded', function () {
+            let curtab = document.getElementById('getTab')
+            document.getElementById(curtab.textContent).classList.add('active')
+        });
+
+    </script>
+</html>
